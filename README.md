@@ -1,0 +1,1 @@
+# -P-PP-PI-Ser-Estar-Ter-e-Ir
