@@ -7,15 +7,15 @@
 </head>
 <body class="bg-slate-50 p-6 flex justify-center">
     <div class="max-w-md w-full bg-white p-6 rounded-xl shadow-md border border-slate-200">
-        <h3 class="text-lg font-bold mb-4">🎤 Laboratório de Pronúncia</h3>
-        <p class="text-sm text-slate-500 mb-6">Ouça a frase e grave a sua para praticar.</p>
+        <h3 class="text-lg font-bold mb-1">🎤 Laboratório de Pronúncia</h3>
+        <p id="counter" class="text-sm text-slate-500 mb-6">Frase 1 de 3</p>
         
         <div id="sentence-display" class="p-4 bg-indigo-50 border-l-4 border-indigo-600 rounded mb-4 font-medium text-indigo-900 text-lg">
             "Eles são brasileiros, mas moram fora."
         </div>
 
         <div class="flex gap-2 mb-4">
-            <button id="listen-btn" class="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg font-bold hover:bg-slate-300 transition">Ouvir</button>
+            <button id="listen-btn" class="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg font-bold hover:bg-slate-300 transition">Ouvir Frase</button>
             <button id="start-btn" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 transition">Começar</button>
         </div>
 
@@ -39,6 +39,7 @@
         const listenBtn = document.getElementById('listen-btn');
         const nextBtn = document.getElementById('next-btn');
         const feedback = document.getElementById('feedback');
+        const counter = document.getElementById('counter');
         
         function normalize(text) {
             return text.toLowerCase()
@@ -62,10 +63,10 @@
         startBtn.onclick = () => {
             if (!isListening) {
                 isListening = true;
-                startBtn.innerText = "Parar Gravação";
+                startBtn.innerText = "Parar";
                 startBtn.className = "flex-1 bg-red-600 text-white py-2 rounded-lg font-bold hover:bg-red-700 transition";
+                feedback.innerText = "Ouvindo...";
                 feedback.className = "mt-4 p-3 rounded text-sm text-center bg-yellow-100 text-yellow-800";
-                feedback.innerText = "Ouvindo... (Clique para parar)";
                 feedback.classList.remove('hidden');
                 recognition.start();
             } else {
@@ -84,7 +85,7 @@
             const normTranscript = normalize(transcript);
             const normTarget = normalize(sentences[currentIndex]);
             
-            if (normTranscript.includes(normTarget) || normTarget.includes(normTranscript)) {
+            if (normTranscript === normTarget) {
                 feedback.className = "mt-4 p-3 rounded text-sm text-center bg-green-100 text-green-800";
                 feedback.innerText = "✅ Excelente! Você acertou.";
                 nextBtn.classList.remove('hidden');
@@ -96,10 +97,20 @@
         };
 
         nextBtn.onclick = () => {
-            currentIndex = (currentIndex + 1) % sentences.length;
-            display.innerText = '"' + sentences[currentIndex] + '"';
-            feedback.classList.add('hidden');
-            nextBtn.classList.add('hidden');
+            currentIndex++;
+            if (currentIndex < sentences.length) {
+                display.innerText = '"' + sentences[currentIndex] + '"';
+                counter.innerText = "Frase " + (currentIndex + 1) + " de " + sentences.length;
+                feedback.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                display.innerText = "Parabéns! Você completou todas as frases.";
+                nextBtn.classList.add('hidden');
+                startBtn.classList.add('hidden');
+                listenBtn.classList.add('hidden');
+                feedback.classList.add('hidden');
+                counter.innerText = "Concluído";
+            }
         };
     </script>
 </body>
