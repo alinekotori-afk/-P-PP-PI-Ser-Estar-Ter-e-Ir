@@ -8,7 +8,7 @@
 <body class="bg-slate-50 p-6">
     <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-md border border-slate-200">
         <h3 class="text-lg font-bold mb-4">🎤 Oral Practice: Pronunciation Challenge</h3>
-        <p class="text-sm text-slate-500 mb-6">Click to listen, then click to speak. Click again to finish recording.</p>
+        <p class="text-sm text-slate-500 mb-6">Listen, then click to record. Click again to stop.</p>
         
         <div id="sentence-display" class="p-4 bg-indigo-50 border-l-4 border-indigo-600 rounded mb-4 font-medium text-indigo-900">
             "Vocês iam muito ao cinema antigamente."
@@ -16,9 +16,9 @@
 
         <div class="flex gap-2 mb-4">
             <button id="listen-btn" class="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg font-bold hover:bg-slate-300 transition">
-                Listen to Phrase
+                Listen
             </button>
-            <button id="start-btn" class="flex-2 bg-indigo-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-indigo-700 transition">
+            <button id="start-btn" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 transition">
                 Start Speaking
             </button>
         </div>
@@ -27,10 +27,11 @@
     </div>
 
     <script>
+        // Frases originais com acentos para exibição e leitura
         const sentences = [
-            "voces iam muito ao cinema antigamente",
-            "eles sao brasileiros mas moram fora",
-            "voce estava muito distraido ontem"
+            "Vocês iam muito ao cinema antigamente.",
+            "Eles são brasileiros, mas moram fora.",
+            "Você estava muito distraído ontem."
         ];
         
         let currentIndex = 0;
@@ -41,11 +42,15 @@
         const listenBtn = document.getElementById('listen-btn');
         const feedback = document.getElementById('feedback');
         
+        // Função para remover acentos para comparação
+        function normalize(text) {
+            return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[?.!]/g, "").trim();
+        }
+
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         recognition.lang = 'pt-BR';
-        recognition.continuous = true; // Mantém ligado até o stop()
-        recognition.interimResults = false;
+        recognition.continuous = false; // Ajustado para ser mais estável
 
         listenBtn.onclick = () => {
             const utterance = new SpeechSynthesisUtterance(sentences[currentIndex]);
@@ -57,33 +62,35 @@
             if (!isListening) {
                 isListening = true;
                 startBtn.innerText = "Stop Recording";
-                startBtn.className = "flex-2 bg-red-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-red-700 transition";
-                
+                startBtn.className = "flex-1 bg-red-600 text-white py-2 rounded-lg font-bold hover:bg-red-700 transition";
                 feedback.className = "mt-4 p-3 rounded text-sm text-center bg-yellow-100 text-yellow-800";
-                feedback.innerText = "Listening... (Click again to stop)";
+                feedback.innerText = "Listening...";
                 feedback.classList.remove('hidden');
-                
                 recognition.start();
             } else {
-                isListening = false;
-                startBtn.innerText = "Start Speaking";
-                startBtn.className = "flex-2 bg-indigo-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-indigo-700 transition";
                 recognition.stop();
             }
         };
 
+        recognition.onend = () => {
+            isListening = false;
+            startBtn.innerText = "Start Speaking";
+            startBtn.className = "flex-1 bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 transition";
+        };
+
         recognition.onresult = (event) => {
-            const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const currentTarget = sentences[currentIndex].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const transcript = event.results[0][0].transcript;
+            const normalizedTranscript = normalize(transcript);
+            const normalizedTarget = normalize(sentences[currentIndex]);
             
-            if (transcript.includes(currentTarget) || currentTarget.includes(transcript)) {
+            if (normalizedTranscript === normalizedTarget) {
                 feedback.className = "mt-4 p-3 rounded text-sm text-center bg-green-100 text-green-800";
                 feedback.innerText = "✅ Excellent! You nailed it.";
                 currentIndex = (currentIndex + 1) % sentences.length;
                 setTimeout(() => {
-                    display.innerText = '"' + sentences[currentIndex].charAt(0).toUpperCase() + sentences[currentIndex].slice(1) + '."';
+                    display.innerText = '"' + sentences[currentIndex] + '"';
                     feedback.classList.add('hidden');
-                }, 3000);
+                }, 2000);
             } else {
                 feedback.className = "mt-4 p-3 rounded text-sm text-center bg-red-100 text-red-800";
                 feedback.innerText = "❌ Try again! You said: '" + transcript + "'.";
