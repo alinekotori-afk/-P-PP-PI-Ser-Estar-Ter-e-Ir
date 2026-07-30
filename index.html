@@ -8,7 +8,7 @@
 <body class="bg-slate-50 p-6">
     <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-md border border-slate-200">
         <h3 class="text-lg font-bold mb-4">🎤 Oral Practice: Pronunciation Challenge</h3>
-        <p class="text-sm text-slate-500 mb-6">Click to listen, then click to speak. Toggle to finish recording.</p>
+        <p class="text-sm text-slate-500 mb-6">Click to listen, then click to speak. Click again to finish recording.</p>
         
         <div id="sentence-display" class="p-4 bg-indigo-50 border-l-4 border-indigo-600 rounded mb-4 font-medium text-indigo-900">
             "Vocês iam muito ao cinema antigamente."
@@ -44,7 +44,7 @@
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         recognition.lang = 'pt-BR';
-        recognition.continuous = false; // Changed to false to force result on stop
+        recognition.continuous = true; // Mantém ligado até o stop()
         recognition.interimResults = false;
 
         listenBtn.onclick = () => {
@@ -60,7 +60,7 @@
                 startBtn.className = "flex-2 bg-red-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-red-700 transition";
                 
                 feedback.className = "mt-4 p-3 rounded text-sm text-center bg-yellow-100 text-yellow-800";
-                feedback.innerText = "Listening... (Click to stop)";
+                feedback.innerText = "Listening... (Click again to stop)";
                 feedback.classList.remove('hidden');
                 
                 recognition.start();
@@ -68,14 +68,12 @@
                 isListening = false;
                 startBtn.innerText = "Start Speaking";
                 startBtn.className = "flex-2 bg-indigo-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-indigo-700 transition";
-                
-                // Forcing recognition stop - result will be triggered by onresult
                 recognition.stop();
             }
         };
 
         recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             const currentTarget = sentences[currentIndex].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             
             if (transcript.includes(currentTarget) || currentTarget.includes(transcript)) {
@@ -90,12 +88,6 @@
                 feedback.className = "mt-4 p-3 rounded text-sm text-center bg-red-100 text-red-800";
                 feedback.innerText = "❌ Try again! You said: '" + transcript + "'.";
             }
-        };
-
-        recognition.onend = () => {
-            isListening = false;
-            startBtn.innerText = "Start Speaking";
-            startBtn.className = "flex-2 bg-indigo-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-indigo-700 transition";
         };
     </script>
 </body>
